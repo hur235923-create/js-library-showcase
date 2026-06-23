@@ -1,0 +1,129 @@
+<!-- ============================================================
+     Perfume Showcase — 마크업
+     - JS(index.js)가 이 파일을 fetch 해서 container에 주입합니다.
+     - 향수 병(.pf-bottle)은 이미지가 아니라 순수 CSS로 그립니다.
+     ============================================================ -->
+<div class="perfume-showcase">
+
+  <!-- ── HERO ─────────────────────────────────────────── -->
+  <section class="s-hero">
+    <div class="pf-halo"></div>
+
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <span class="hero__kicker">MAISON AURUM · PARIS</span>
+        <h1 class="hero__title">
+          <span class="line-mask"><span class="line">The Essence</span></span>
+          <span class="line-mask"><span class="line">of <em>Gold</em></span></span>
+        </h1>
+        <p class="hero__sub">깊은 어둠 속에서 피어나는 단 하나의 잔향.</p>
+      </div>
+
+      <div class="hero__bottle">
+        <!-- 재사용 가능한 향수 병 컴포넌트 -->
+        <div class="pf-bottle">
+          <div class="pf-bottle__cap"></div>
+          <div class="pf-bottle__neck"></div>
+          <div class="pf-bottle__body">
+            <div class="pf-bottle__liquid"></div>
+            <div class="pf-bottle__label">
+              <span class="pf-bottle__brand">AURUM</span>
+              <span class="pf-bottle__rule"></span>
+              <span class="pf-bottle__edp">EAU DE PARFUM</span>
+            </div>
+            <div class="pf-bottle__shine"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__scroll">SCROLL<span class="hero__scroll-line"></span></div>
+  </section>
+
+  <!-- ── SECTION 1 · THE OBJECT (rotate + scale on scroll) ─ -->
+  <section class="s-reveal">
+    <div class="s-reveal__stage">
+      <p class="s-reveal__caption">Crafted in Grasse — 스크롤에 따라 천천히 회전합니다</p>
+      <div class="pf-bottle pf-bottle--lg">
+        <div class="pf-bottle__cap"></div>
+        <div class="pf-bottle__neck"></div>
+        <div class="pf-bottle__body">
+          <div class="pf-bottle__liquid"></div>
+          <div class="pf-bottle__label">
+            <span class="pf-bottle__brand">AURUM</span>
+            <span class="pf-bottle__rule"></span>
+            <span class="pf-bottle__edp">EAU DE PARFUM</span>
+          </div>
+          <div class="pf-bottle__shine"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SECTION 2 · THE NOTES (pinned storytelling) ─────── -->
+  <section class="s-notes">
+    <div class="s-notes__stage">
+      <!-- 노트별 배경 레이어 (cross-fade) -->
+      <div class="s-notes__bgs">
+        <div class="nbg nbg--top"></div>
+        <div class="nbg nbg--mid"></div>
+        <div class="nbg nbg--base"></div>
+      </div>
+
+      <div class="s-notes__inner">
+        <div class="note" data-note="top">
+          <span class="note__index">01 — TOP NOTE</span>
+          <h3 class="note__title">Citrus · Bergamot · Lemon</h3>
+          <p class="note__desc">첫 인상은 눈부신 시트러스의 광채. 베르가못과 레몬이
+             서늘하게 부서지며 잔향의 서막을 엽니다.</p>
+          <span class="note__ghost">TOP</span>
+        </div>
+
+        <div class="note" data-note="mid">
+          <span class="note__index">02 — MIDDLE NOTE</span>
+          <h3 class="note__title">Rose · Jasmine · Lavender</h3>
+          <p class="note__desc">시간이 흐르면 장미와 자스민이 피어나고,
+             라벤더가 그 사이를 우아하게 감쌉니다. 향의 심장.</p>
+          <span class="note__ghost">HEART</span>
+        </div>
+
+        <div class="note" data-note="base">
+          <span class="note__index">03 — BASE NOTE</span>
+          <h3 class="note__title">Musk · Sandalwood · Amber</h3>
+          <p class="note__desc">마지막에 남는 것은 머스크와 샌달우드, 그리고 앰버의
+             깊은 온기. 피부 위에 오래 머무는 골드빛 잔향.</p>
+          <span class="note__ghost">BASE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FINALE · 화면을 채우는 확대 + 브랜드 메시지 ──────── -->
+  <section class="s-finale">
+    <div class="s-finale__stage">
+      <div class="pf-halo pf-halo--finale"></div>
+
+      <div class="pf-bottle">
+        <div class="pf-bottle__cap"></div>
+        <div class="pf-bottle__neck"></div>
+        <div class="pf-bottle__body">
+          <div class="pf-bottle__liquid"></div>
+          <div class="pf-bottle__label">
+            <span class="pf-bottle__brand">AURUM</span>
+            <span class="pf-bottle__rule"></span>
+            <span class="pf-bottle__edp">EAU DE PARFUM</span>
+          </div>
+          <div class="pf-bottle__shine"></div>
+        </div>
+      </div>
+
+      <div class="finale-msg">
+        <span class="finale-msg__kicker">MAISON AURUM</span>
+        <h2 class="finale-msg__title">The Scent of <em>Gold</em>.</h2>
+        <p class="finale-msg__sub">골드빛 잔향, 그 이상의 존재감.</p>
+        <button class="pf-btn">Discover the Collection</button>
+      </div>
+    </div>
+  </section>
+
+</div>

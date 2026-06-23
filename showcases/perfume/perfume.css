@@ -1,0 +1,346 @@
+/* ============================================================
+   Perfume Showcase — 스타일 (딥 블랙 + 골드 럭셔리)
+   - 모든 규칙은 .perfume-showcase 하위로 스코프해 다른 탭에 영향 없음
+   - 폰트: Cormorant Garamond(세리프, 브랜드) + Inter(본문)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Inter:wght@300;400;500&display=swap');
+
+.perfume-showcase {
+  --pf-black:  #060503;
+  --pf-black2: #0c0a06;
+  --pf-gold:   #c9a24b;
+  --pf-gold-l: #e9d39a;
+  --pf-cream:  #f3ead6;
+  --pf-text:   #cabfa9;
+  --pf-muted:  #6f6650;
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans:  'Inter', system-ui, sans-serif;
+
+  /* 풀블리드: 가운데 정렬 컨테이너 밖으로 확장 + main 패딩 상쇄 */
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: -40px;
+  margin-bottom: -40px;
+  overflow-x: hidden;
+  background: var(--pf-black);
+  color: var(--pf-text);
+  font-family: var(--sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 향수 탭 활성 시 글로벌 헤더를 투명 처리해 몰입감 ↑ (destroy 시 복원) */
+body.perfume-active .site-header {
+  background: linear-gradient(to bottom, rgba(6, 5, 3, 0.85), rgba(6, 5, 3, 0));
+  border-bottom-color: transparent;
+  backdrop-filter: blur(4px);
+}
+
+/* ── 공통 ─────────────────────────────────────────────── */
+.perfume-showcase section { position: relative; width: 100%; }
+.perfume-showcase em { font-style: italic; color: var(--pf-gold-l); }
+
+.pf-halo {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 620px; height: 620px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+              rgba(201, 162, 75, 0.22) 0%,
+              rgba(201, 162, 75, 0.06) 35%,
+              transparent 68%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 향수 병 (순수 CSS) ───────────────────────────────── */
+.pf-bottle {
+  --w: 150px;
+  width: var(--w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.7));
+  transform-style: preserve-3d;
+}
+.pf-bottle--lg { --w: 180px; }
+
+.pf-bottle__cap {
+  width: calc(var(--w) * 0.38);
+  height: calc(var(--w) * 0.30);
+  border-radius: 5px 5px 3px 3px;
+  background: linear-gradient(180deg, #f3e2a6 0%, #c9a24b 48%, #7c5e26 100%);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.6),
+              inset 0 -3px 6px rgba(0, 0, 0, 0.4),
+              0 4px 10px rgba(0, 0, 0, 0.5);
+}
+.pf-bottle__neck {
+  width: calc(var(--w) * 0.26);
+  height: calc(var(--w) * 0.08);
+  background: linear-gradient(180deg, #c9a24b, #9a7a33);
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.4);
+}
+.pf-bottle__body {
+  position: relative;
+  width: var(--w);
+  height: calc(var(--w) * 1.5);
+  border-radius: 16px 16px 22px 22px;
+  overflow: hidden;
+  border: 1px solid rgba(233, 211, 154, 0.35);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.02) 42%),
+    linear-gradient(to bottom, rgba(201, 162, 75, 0.10), rgba(120, 82, 24, 0.30) 60%, rgba(70, 46, 12, 0.5));
+  box-shadow: inset 0 0 38px rgba(255, 220, 150, 0.12),
+              inset 0 -10px 30px rgba(0, 0, 0, 0.4);
+}
+.pf-bottle__liquid {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 58%;
+  background: linear-gradient(to top, rgba(180, 120, 40, 0.7), rgba(201, 162, 75, 0.18));
+}
+.pf-bottle__shine {
+  position: absolute;
+  top: 0; left: 12%;
+  width: 22%; height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.32), transparent);
+  filter: blur(1px);
+}
+.pf-bottle__label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 74%;
+  padding: 14px 0;
+  text-align: center;
+  border-top: 1px solid rgba(233, 211, 154, 0.5);
+  border-bottom: 1px solid rgba(233, 211, 154, 0.5);
+  background: rgba(8, 6, 3, 0.28);
+  z-index: 2;
+}
+.pf-bottle__brand {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  font-size: calc(var(--w) * 0.16);
+  color: var(--pf-gold-l);
+  text-shadow: 0 0 10px rgba(201, 162, 75, 0.5);
+}
+.pf-bottle__rule {
+  display: block;
+  width: 28px; height: 1px;
+  margin: 6px auto;
+  background: var(--pf-gold);
+}
+.pf-bottle__edp {
+  display: block;
+  font-size: calc(var(--w) * 0.055);
+  letter-spacing: 0.3em;
+  color: var(--pf-cream);
+  opacity: 0.8;
+}
+
+/* ── HERO ─────────────────────────────────────────────── */
+.s-hero {
+  height: calc(100vh - var(--header-h, 60px));
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: clamp(30px, 7vw, 110px);
+  padding: 0 32px;
+}
+.hero__kicker {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  color: var(--pf-gold);
+  margin-bottom: 26px;
+}
+.hero__title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(46px, 7vw, 92px);
+  line-height: 1.02;
+  color: var(--pf-cream);
+}
+.line-mask { display: block; overflow: hidden; }
+.line { display: block; }
+.hero__sub {
+  margin-top: 28px;
+  font-size: clamp(14px, 1.5vw, 17px);
+  color: var(--pf-text);
+  letter-spacing: 0.02em;
+}
+.hero__bottle { flex-shrink: 0; }
+
+.hero__scroll {
+  position: absolute;
+  bottom: 34px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: var(--pf-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.hero__scroll-line {
+  width: 1px; height: 46px;
+  background: linear-gradient(to bottom, var(--pf-gold), transparent);
+  animation: pfScroll 2s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes pfScroll {
+  0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+  50%       { transform: scaleY(1);   opacity: 1; }
+}
+
+/* ── SECTION 1 · THE OBJECT ───────────────────────────── */
+.s-reveal { height: 240vh; }
+.s-reveal__stage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  perspective: 1400px;          /* rotateY 입체감 */
+  background:
+    radial-gradient(circle at 50% 40%, rgba(201, 162, 75, 0.10), transparent 60%),
+    var(--pf-black);
+}
+.s-reveal__caption {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--pf-muted);
+  text-transform: uppercase;
+}
+
+/* ── SECTION 2 · THE NOTES ────────────────────────────── */
+.s-notes { height: 400vh; }
+.s-notes__stage {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.s-notes__bgs { position: absolute; inset: 0; z-index: 0; }
+.nbg { position: absolute; inset: 0; opacity: 0; }
+.nbg--top  { background: radial-gradient(circle at 30% 40%, rgba(216, 196, 90, 0.18), transparent 55%), var(--pf-black); }
+.nbg--mid  { background: radial-gradient(circle at 70% 50%, rgba(190, 90, 110, 0.16), transparent 55%), var(--pf-black2); }
+.nbg--base { background: radial-gradient(circle at 50% 60%, rgba(150, 100, 50, 0.20), transparent 55%), #0a0703; }
+
+.s-notes__inner { position: relative; z-index: 2; width: min(680px, 86vw); text-align: center; }
+.note {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+.note__index {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  color: var(--pf-gold);
+  margin-bottom: 24px;
+}
+.note__title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(34px, 5.5vw, 64px);
+  color: var(--pf-cream);
+  line-height: 1.1;
+}
+.note__desc {
+  margin-top: 24px;
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.8;
+  color: var(--pf-text);
+}
+.note__ghost {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--serif);
+  font-size: clamp(160px, 30vw, 360px);
+  font-weight: 600;
+  color: rgba(201, 162, 75, 0.05);
+  z-index: -1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── FINALE ───────────────────────────────────────────── */
+.s-finale { height: 260vh; }
+.s-finale__stage {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pf-black);
+}
+.pf-halo--finale { width: 900px; height: 900px; opacity: 0.4; }
+.finale-msg {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  text-align: center;
+  width: min(680px, 88vw);
+}
+.finale-msg__kicker {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.4em;
+  color: var(--pf-gold);
+  margin-bottom: 22px;
+}
+.finale-msg__title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(40px, 6.5vw, 86px);
+  color: var(--pf-cream);
+  line-height: 1.05;
+}
+.finale-msg__sub {
+  margin-top: 18px;
+  font-size: clamp(14px, 1.6vw, 18px);
+  color: var(--pf-text);
+}
+.pf-btn {
+  margin-top: 40px;
+  padding: 15px 36px;
+  background: transparent;
+  border: 1px solid var(--pf-gold);
+  border-radius: 2px;
+  color: var(--pf-gold-l);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  cursor: pointer;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+.pf-btn:hover { background: var(--pf-gold); color: var(--pf-black); }
+
+/* ── 반응형 ───────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .hero__inner { flex-direction: column-reverse; text-align: center; gap: 40px; }
+  .pf-bottle { --w: 120px; }
+  .pf-bottle--lg { --w: 140px; }
+  .note__desc { padding: 0 6px; }
+}
