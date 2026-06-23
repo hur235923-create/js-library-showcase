@@ -16,9 +16,13 @@
  * }
  */
 
+import gsap from './gsap/index.js';
+import animejs from './anime-js/index.js';
 import exampleLibrary from './example-library/index.js';
 
 export const showcases = [
+  gsap,
+  animejs,
   exampleLibrary,
   // 여기에 새 쇼케이스 추가
 ];
