@@ -208,25 +208,37 @@ body.perfume-active .site-header {
   50%       { transform: scaleY(1);   opacity: 1; }
 }
 
-/* ── SECTION 1 · THE OBJECT ───────────────────────────── */
+/* ── SECTION 1 · THE OBJECT (Three.js 3D) ─────────────── */
 .s-reveal { height: 240vh; }
 .s-reveal__stage {
+  position: relative;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  perspective: 1400px;          /* rotateY 입체감 */
+  overflow: hidden;
   background:
-    radial-gradient(circle at 50% 40%, rgba(201, 162, 75, 0.10), transparent 60%),
+    radial-gradient(circle at 50% 45%, rgba(201, 162, 75, 0.14), transparent 62%),
     var(--pf-black);
 }
+.s-reveal__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.s-reveal__canvas canvas { display: block; }
 .s-reveal__caption {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
   font-size: 12px;
   letter-spacing: 0.3em;
   color: var(--pf-muted);
   text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .s-reveal__caption { font-size: 10px; letter-spacing: 0.15em; }
 }
 
 /* ── SECTION 2 · THE NOTES ────────────────────────────── */
