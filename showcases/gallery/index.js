@@ -43,6 +43,18 @@ const ARTWORKS = [
   { style: 'organic', title: 'Verdant Echoes', artist: 'Olivia Moreau', year: 2022,
     medium: 'Oil on linen',
     desc: '유기적인 형상들이 서로 메아리치며 생명의 리듬을 그린다. 자연의 성장과 순환에 대한 은유.' },
+  { style: 'mesh', title: 'Nocturne in Teal', artist: 'Idris Haddad', year: 2021,
+    medium: 'Digital painting',
+    desc: '청록빛 어둠 속에서 빛이 번지는 밤의 정경. 도시의 불빛과 침묵이 한 화면에 공존한다.' },
+  { style: 'waves', title: 'Salt and Light', artist: 'Greta Hoffmann', year: 2019,
+    medium: 'Mixed media on board',
+    desc: '바다의 표면에 부서지는 빛을 층층의 물결로 담았다. 짠 공기와 반짝임의 기억.' },
+  { style: 'dots', title: 'A Thousand Mornings', artist: 'Naomi Park', year: 2023,
+    medium: 'Pointillist study',
+    desc: '무수한 점이 모여 새로운 아침마다 피어나는 빛을 그린다. 반복 속의 미세한 차이.' },
+  { style: 'goldGeo', title: 'Equinox Cipher', artist: 'Lucas Moreno', year: 2020,
+    medium: 'Gold leaf on panel',
+    desc: '낮과 밤이 균형을 이루는 분점의 기하학. 금빛 나선이 시간의 암호를 그린다.' },
 ];
 
 // ── 모듈 상태 ───────────────────────────────────────
@@ -59,8 +71,9 @@ let stageEl = null, panelEl = null, dimEl = null;
 let onPointerMove, onClick, onResize, onKey;
 const pointer = { x: 0, y: 0 };
 
-const CAM_Z = 11;
-const BASE_R = 6;
+const CAM_Z = 16;     // 카메라를 멀리 빼서 더 넓은 공간이 한 번에 보이도록
+const BASE_R = 7.4;   // 구(sphere) 반지름 — 작품이 화면 전체로 퍼짐
+const GOLDEN = Math.PI * (3 - Math.sqrt(5)); // 황금각 (구 균등 분포용)
 
 async function init(container) {
   alive = true;
@@ -213,9 +226,9 @@ function buildScene() {
 
   scene = new THREE.Scene();
   // 종이 톤 안개로 먼 작품이 배경에 녹아들며 깊이감 형성
-  scene.fog = new THREE.Fog(0xe7e0d0, 9, 19);
+  scene.fog = new THREE.Fog(0xe7e0d0, 13, 32);
 
-  camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+  camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 120);
   camera.position.set(0, 0, CAM_Z);
   camera.lookAt(0, 0, 0);
 
@@ -262,31 +275,35 @@ function buildDust() {
 }
 
 function buildFrames() {
-  const THREE = _THREE;
   const N = ARTWORKS.length;
 
   ARTWORKS.forEach((art, i) => {
-    const angle = (i / N) * Math.PI * 2;
-    // 깊이(Z) 변주: 반지름을 살짝 다르게 + 높이 변주
-    const radius = BASE_R + ((i % 3) - 1) * 0.9;
-    const trackY = Math.sin(i * 1.7) * 0.45;
+    // Fibonacci 구 분포 → 작품이 X·Y·Z 전 방향으로 고르게 퍼짐(화면 전체 확산)
+    const yN = 1 - (i / (N - 1)) * 2;          // 1 → -1
+    const ring = Math.sqrt(Math.max(0, 1 - yN * yN));
+    const phi = i * GOLDEN;
+    const px = Math.cos(phi) * ring * BASE_R;
+    const py = yN * BASE_R * 0.92;
+    const pz = Math.sin(phi) * ring * BASE_R;
+
     const portrait = i % 3 !== 1;
     const aw = portrait ? 2.1 : 2.6;
     const ah = portrait ? 2.7 : 2.0;
+    const s = 0.78 + ((i * 7) % 10) / 10 * 0.55;  // 작품마다 크기 변주(0.78~1.33)
 
     const frame = makeFrame(art, aw, ah);
-    frame.position.set(Math.sin(angle) * radius, trackY, Math.cos(angle) * radius);
-    frame.rotation.y = angle;   // 바깥쪽(카메라 방향)을 향하도록
+    frame.position.set(px, py, pz);
+    frame.scale.setScalar(s);
 
     frame.userData = {
-      index: i, data: art, trackY,
-      frameH: ah * 1.12,        // 포커스 크기 계산용(액자 외곽 높이)
+      index: i, data: art,
+      frameH: ah * 1.12,        // 포커스 크기 계산용(액자 외곽 높이, 스케일 제외)
+      baseScale: s,
       floatPhase: Math.random() * Math.PI * 2,
-      floatAmp: 0.10 + Math.random() * 0.10,
+      floatAmp: 0.06 + Math.random() * 0.08,
       floatSpeed: 0.4 + Math.random() * 0.4,
       floating: true,
-      home: { x: frame.position.x, y: trackY, z: frame.position.z,
-              rx: 0, ry: angle, rz: 0 },
+      home: { x: px, y: py, z: pz, s },
     };
     group.add(frame);
     frames.push(frame);
@@ -538,9 +555,15 @@ function updateHover() {
   const hit = raycaster.intersectObjects(frames, true)[0];
   const frame = hit ? hit.object.userData.frame : null;
   if (frame === hovered) return;
-  if (hovered) _gsap.to(hovered.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: 'power2.out' });
+  if (hovered) {
+    const b = hovered.userData.baseScale;
+    _gsap.to(hovered.scale, { x: b, y: b, z: b, duration: 0.4, ease: 'power2.out' });
+  }
   hovered = frame;
-  if (hovered) _gsap.to(hovered.scale, { x: 1.09, y: 1.09, z: 1.09, duration: 0.4, ease: 'power2.out' });
+  if (hovered) {
+    const b = hovered.userData.baseScale * 1.12;
+    _gsap.to(hovered.scale, { x: b, y: b, z: b, duration: 0.4, ease: 'power2.out' });
+  }
   renderer.domElement.style.cursor = hovered ? 'pointer' : 'grab';
 }
 
@@ -550,7 +573,7 @@ function selectFrame(frame) {
   focusBusy = true;
   frame.userData.floating = false;
   lenis && lenis.stop();              // 회전 잠금
-  if (hovered) { _gsap.to(hovered.scale, { x: 1, y: 1, z: 1, duration: 0.3 }); hovered = null; }
+  if (hovered) { const b = hovered.userData.baseScale; _gsap.to(hovered.scale, { x: b, y: b, z: b, duration: 0.3 }); hovered = null; }
   renderer.domElement.style.cursor = 'default';
 
   // 그룹 → 씬으로 reparent(월드 변환 유지) 후 카메라 앞으로 이동
@@ -559,7 +582,7 @@ function selectFrame(frame) {
   // 뷰포트 높이에 맞춰 포커스 스케일을 동적 계산 (항상 화면에 꽉 차되 잘리지 않게)
   const THREE = _THREE;
   const isNarrow = stageEl.clientWidth < 760;
-  const focusZ = 6.8;
+  const focusZ = 11;
   const d = CAM_Z - focusZ;
   const visH = 2 * d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const ratio = isNarrow ? 0.5 : 0.84;
@@ -602,12 +625,13 @@ function deselectFrame() {
     eachMat(f, (m) => _gsap.to(m, { opacity: 1, duration: 0.7, ease: 'power2.out' }));
   });
 
-  // 씬 → 그룹으로 reparent 후 원래 트랙 슬롯으로 복귀
+  // 씬 → 그룹으로 reparent 후 원래 구(sphere) 슬롯으로 복귀
+  // (회전은 복귀 후 빌보드가 매 프레임 카메라를 향하도록 처리)
   group.attach(frame);
   const home = frame.userData.home;
+  const b = frame.userData.baseScale;
   _gsap.to(frame.position, { x: home.x, y: home.y, z: home.z, duration: 0.9, ease: 'power3.inOut' });
-  _gsap.to(frame.rotation, { x: home.rx, y: home.ry, z: home.rz, duration: 0.9, ease: 'power3.inOut' });
-  _gsap.to(frame.scale, { x: 1, y: 1, z: 1, duration: 0.9, ease: 'power3.inOut', onComplete: () => {
+  _gsap.to(frame.scale, { x: b, y: b, z: b, duration: 0.9, ease: 'power3.inOut', onComplete: () => {
     frame.userData.floating = true;
     selected = null;
     focusBusy = false;
@@ -663,8 +687,10 @@ function startLoop() {
     for (const f of frames) {
       if (!f.userData.floating) continue;
       const u = f.userData;
-      f.position.y = u.trackY + Math.sin(t * u.floatSpeed + u.floatPhase) * u.floatAmp;
-      f.rotation.z = Math.sin(t * 0.3 + u.floatPhase) * 0.012;
+      f.position.y = u.home.y + Math.sin(t * u.floatSpeed + u.floatPhase) * u.floatAmp;
+      // 빌보드: 구 위 어디에 있든 항상 카메라를 정면으로 바라보게
+      // (Object3D.lookAt 은 비카메라 객체의 앞면 +Z 를 대상으로 향하게 함)
+      f.lookAt(camera.position);
     }
 
     // 먼지 입자 느린 드리프트 (레이어마다 속도 차 → 깊이)
