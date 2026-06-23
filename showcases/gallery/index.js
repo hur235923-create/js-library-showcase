@@ -51,6 +51,8 @@ let _gsap = null, _ST = null, _THREE = null;
 let lenis = null, ctx = null, tickerFn = null, cssLink = null;
 let renderer, scene, camera, group, clock, raf;
 let frames = [];
+let dusts = [];          // 3D 먼지 입자 레이어
+let bgParallax = [];     // CSS 배경 패럴렉스 quickTo
 let raycaster, ndc;
 let hovered = null, selected = null, focusBusy = false;
 let stageEl = null, panelEl = null, dimEl = null;
@@ -97,6 +99,11 @@ async function init(container) {
   container.innerHTML = `
     <section class="gallery-showcase gal-section">
       <div class="gal-stage" id="galStage">
+        <div class="gal-bg" id="galBg">
+          <div class="gal-bg__layer gal-bg__layer--1"></div>
+          <div class="gal-bg__layer gal-bg__layer--2"></div>
+          <div class="gal-bg__layer gal-bg__layer--3"></div>
+        </div>
         <div class="gal-dim" id="galDim"></div>
         <aside class="gal-panel" id="galPanel">
           <button class="gal-panel__close" id="galClose" aria-label="닫기">×</button>
@@ -187,7 +194,8 @@ function destroy() {
   if (cssLink) { cssLink.remove(); cssLink = null; }
   window.scrollTo(0, 0);
   scene = camera = group = clock = null;
-  frames = []; hovered = selected = null; focusBusy = false;
+  frames = []; dusts = []; bgParallax = [];
+  hovered = selected = null; focusBusy = false;
   _gsap = _ST = _THREE = null;
 }
 
@@ -220,8 +228,37 @@ function buildScene() {
   group = new THREE.Group();
   scene.add(group);
 
+  buildDust();
+
   raycaster = new THREE.Raycaster();
   ndc = new THREE.Vector2();
+}
+
+/* 공간 곳곳 다른 깊이에 떠 있는 먼지 입자 → 볼류메트릭 깊이감/패럴렉스 */
+function buildDust() {
+  const THREE = _THREE;
+  // [개수, 분포(x,y,z), 크기, 색, 투명도] — 원/근 두 레이어로 패럴렉스 차이
+  const layers = [
+    { n: 520, sx: 32, sy: 18, sz: 32, size: 0.055, color: 0xb9a98a, opacity: 0.5 },  // 원경(멀리·작게)
+    { n: 130, sx: 18, sy: 11, sz: 14, size: 0.10,  color: 0xfff4dd, opacity: 0.65 }, // 근경(가까이·크게)
+  ];
+  layers.forEach((L) => {
+    const pos = new Float32Array(L.n * 3);
+    for (let i = 0; i < L.n; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * L.sx;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * L.sy;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * L.sz;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({
+      color: L.color, size: L.size, sizeAttenuation: true,
+      transparent: true, opacity: L.opacity, depthWrite: false, fog: true,
+    });
+    const pts = new THREE.Points(geo, mat);
+    scene.add(pts);
+    dusts.push(pts);
+  });
 }
 
 function buildFrames() {
@@ -449,10 +486,18 @@ const ART_STYLES = {
 function bindEvents(container) {
   const THREE = _THREE;
 
+  // CSS 배경 레이어 패럴렉스: 레이어마다 이동량을 다르게 줘 깊이감
+  bgParallax = [...container.querySelectorAll('.gal-bg__layer')].map((el, i) => ({
+    qx: _gsap.quickTo(el, 'x', { duration: 1.0, ease: 'power2.out' }),
+    qy: _gsap.quickTo(el, 'y', { duration: 1.0, ease: 'power2.out' }),
+    f: (i + 1) * 26,   // 뒤 레이어일수록 더 크게 이동
+  }));
+
   onPointerMove = (e) => {
     const r = renderer.domElement.getBoundingClientRect();
     pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
     pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    bgParallax.forEach((p) => { p.qx(-pointer.x * p.f); p.qy(pointer.y * p.f); });
     if (focusBusy || selected) return;
     updateHover();
   };
@@ -622,10 +667,16 @@ function startLoop() {
       f.rotation.z = Math.sin(t * 0.3 + u.floatPhase) * 0.012;
     }
 
-    // 카메라 미세 패럴랙스 (선택 중엔 거의 정지)
-    const k = selected ? 0.04 : 0.4;
-    camera.position.x += (pointer.x * k - camera.position.x) * 0.04;
-    camera.position.y += (pointer.y * k * 0.6 - camera.position.y) * 0.04;
+    // 먼지 입자 느린 드리프트 (레이어마다 속도 차 → 깊이)
+    dusts.forEach((d, i) => {
+      d.rotation.y = t * (0.012 + i * 0.01);
+      d.position.y = Math.sin(t * 0.12 + i) * 0.25;
+    });
+
+    // 카메라 패럴랙스 (선택 중엔 거의 정지) — 입자/액자 사이 시차 발생
+    const k = selected ? 0.04 : 0.65;
+    camera.position.x += (pointer.x * k - camera.position.x) * 0.045;
+    camera.position.y += (pointer.y * k * 0.6 - camera.position.y) * 0.045;
     camera.lookAt(0, 0, 0);
 
     renderer.render(scene, camera);

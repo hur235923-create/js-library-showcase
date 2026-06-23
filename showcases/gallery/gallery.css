@@ -44,14 +44,35 @@
   opacity: 0.4;
   pointer-events: none;
 }
-/* 비네팅 */
-.gal-stage::after {
-  content: '';
-  position: absolute; inset: 0;
+/* 패럴렉스 배경 레이어 (흐릿한 컬러 블롭이 마우스에 따라 다른 속도로 이동) */
+.gal-bg {
+  position: absolute; inset: -12%;
   z-index: 1;
-  background: radial-gradient(circle at 50% 50%, transparent 55%, rgba(60, 50, 34, 0.22) 100%);
+  overflow: hidden;
   pointer-events: none;
 }
+.gal-bg__layer {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.gal-bg__layer--1 {
+  width: 48vw; height: 48vw; left: 4%; top: 12%;
+  background: radial-gradient(circle, rgba(202, 161, 95, 0.55), transparent 70%);
+  opacity: 0.5;
+}
+.gal-bg__layer--2 {
+  width: 42vw; height: 42vw; right: 2%; top: 6%;
+  background: radial-gradient(circle, rgba(118, 142, 188, 0.5), transparent 70%);
+  opacity: 0.42;
+}
+.gal-bg__layer--3 {
+  width: 40vw; height: 40vw; left: 28%; bottom: -4%;
+  background: radial-gradient(circle, rgba(185, 130, 96, 0.5), transparent 70%);
+  opacity: 0.45;
+}
+
 .gal-stage canvas {
   position: absolute; inset: 0;
   z-index: 2;
@@ -59,8 +80,17 @@
   cursor: grab;
 }
 
+/* 비네팅 (캔버스 위에서 가장자리를 어둡게 → 중앙 집중) */
+.gal-stage::after {
+  content: '';
+  position: absolute; inset: 0;
+  z-index: 3;
+  background: radial-gradient(circle at 50% 50%, transparent 52%, rgba(58, 48, 32, 0.28) 100%);
+  pointer-events: none;
+}
+
 /* ── HUD (브랜드 / 안내) ──────────────────────────────── */
-.gal-hud { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.gal-hud { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
 .gal-hud__brand {
   position: absolute; top: 26px; left: 34px;
   font-family: var(--serif);
@@ -91,7 +121,7 @@
 /* ── 디밍 오버레이 (선택 시 주변 어둡게) ──────────────── */
 .gal-dim {
   position: absolute; inset: 0;
-  z-index: 4;
+  z-index: 5;
   background: radial-gradient(circle at 38% 50%, rgba(20, 16, 10, 0.45), rgba(12, 9, 5, 0.82));
   opacity: 0;
   visibility: hidden;
@@ -103,7 +133,7 @@
   position: absolute;
   top: 50%; right: 4.5vw;
   transform: translateY(-50%);
-  z-index: 6;
+  z-index: 7;
   width: min(360px, 86vw);
   padding: 40px 38px;
   background: linear-gradient(180deg, rgba(247, 242, 232, 0.96), rgba(238, 231, 217, 0.96));
