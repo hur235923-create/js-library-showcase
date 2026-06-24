@@ -1,0 +1,346 @@
+/* ─────────────────────────────────────────────────────
+ *  Digital Cosmos — 스테이지 & UI 오버레이
+ *  (showcase 마운트 시 동적 주입, destroy 시 제거)
+ * ──────────────────────────────────────────────────── */
+
+/* full-bleed: main-content 의 max-width/패딩을 상쇄 */
+.cosmos-root {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-top: -40px;     /* main-content 상단 패딩 상쇄 */
+  margin-bottom: -40px;  /* 하단 패딩 상쇄 */
+  background: #05060e;
+}
+
+/* 스크롤하는 동안 화면에 고정되는 무대 */
+.cosmos-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.cosmos-stage__canvas {
+  position: absolute;
+  inset: 0;
+}
+.cosmos-stage__canvas .cosmos-canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 비네팅 — 가장자리를 어둡게 눌러 깊이감 */
+.cosmos-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 45%,
+    transparent 55%, rgba(3, 4, 12, 0.55) 100%);
+  z-index: 2;
+}
+
+/* 필름 그레인 — 화면 전체에 미세한 입자감 (시네마틱) */
+.cosmos-stage::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  animation: cosmos-grain 0.7s steps(3) infinite;
+}
+@keyframes cosmos-grain {
+  0%   { transform: translate(0, 0); }
+  33%  { transform: translate(-6px, 4px); }
+  66%  { transform: translate(5px, -5px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ── UI 오버레이 ──────────────────────────────────── */
+.cosmos-stage__ui {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  color: #eaf0ff;
+  font-family: var(--font, system-ui, sans-serif);
+}
+
+/* HUD (상단 바) */
+.cosmos-hud {
+  position: absolute;
+  top: calc(var(--header-h, 56px) + 20px);
+  left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 clamp(18px, 4vw, 48px);
+}
+.cosmos-brand {
+  font-size: clamp(13px, 1.4vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cosmos-brand span {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  color: #6f7bb0;
+}
+.cosmos-counter {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: #8893c7;
+  font-variant-numeric: tabular-nums;
+}
+.cosmos-counter b { color: #eaf0ff; font-weight: 700; }
+
+/* 웨이포인트 캡션 (스크롤 구간마다 교체) */
+.cosmos-captions {
+  position: absolute;
+  left: clamp(18px, 4vw, 64px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: min(440px, 80vw);
+}
+.cosmos-cap {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.cosmos-cap.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.cosmos-cap__kicker {
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: #6f7bb0;
+  font-weight: 600;
+}
+.cosmos-cap__title {
+  font-size: clamp(28px, 4.4vw, 52px);
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 14px 0 16px;
+  background: linear-gradient(120deg, #ffd9a0 0%, #ff8a8a 45%, #7aa0ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cosmos-cap__text {
+  font-size: clamp(14px, 1.5vw, 17px);
+  line-height: 1.7;
+  color: #c2c9ee;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* 진행 바 (우측 세로) */
+.cosmos-progress {
+  position: absolute;
+  right: clamp(16px, 3vw, 40px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: clamp(120px, 26vh, 240px);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.cosmos-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: top;
+  transform: scaleY(0);
+  background: linear-gradient(180deg, #ffd9a0, #7aa0ff);
+}
+
+/* 스크롤 힌트 (하단 중앙) */
+.cosmos-hint {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: #8893c7;
+  transition: opacity 0.5s ease;
+}
+.cosmos-hint.is-hidden { opacity: 0; }
+.cosmos-hint__arrow {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(180deg, #8893c7, transparent);
+  animation: cosmos-scroll-cue 1.8s ease-in-out infinite;
+}
+@keyframes cosmos-scroll-cue {
+  0%   { transform: scaleY(0); transform-origin: top; opacity: 0; }
+  40%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
+  60%  { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+
+/* ── 프로젝트 천체: 라벨 ──────────────────────────── */
+.cosmos-projects { position: absolute; inset: 0; }
+.cosmos-plabels { position: absolute; inset: 0; }
+
+.cosmos-plabel {
+  position: absolute;
+  top: 0; left: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "dot name" "dot tag" "cue cue";
+  column-gap: 10px;
+  align-items: center;
+  padding: 9px 16px 9px 11px;
+  background: rgba(8, 12, 26, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  color: #eaf0ff;
+  font-family: var(--font, system-ui, sans-serif);
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.4s ease, border-color 0.4s ease, background 0.4s ease;
+  will-change: transform, opacity;
+}
+.cosmos-plabel:hover, .cosmos-plabel.is-near {
+  border-color: var(--c);
+  background: rgba(12, 18, 38, 0.6);
+}
+.cosmos-plabel__dot {
+  grid-area: dot;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 14px var(--c), 0 0 4px var(--c);
+}
+.cosmos-plabel__name {
+  grid-area: name;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.16em;
+}
+.cosmos-plabel__tag {
+  grid-area: tag;
+  font-size: 10.5px; letter-spacing: 0.08em; color: #9aa6d8;
+}
+.cosmos-plabel__cue {
+  grid-area: cue;
+  overflow: hidden;
+  max-height: 0; opacity: 0; margin-top: 0;
+  font-size: 9.5px; letter-spacing: 0.26em; color: var(--c);
+  transition: max-height 0.4s ease, opacity 0.4s ease, margin-top 0.4s ease;
+}
+.cosmos-plabel.is-near .cosmos-plabel__cue {
+  max-height: 16px; opacity: 1; margin-top: 6px;
+}
+
+/* ── 프로젝트 상세 패널 ───────────────────────────── */
+.cosmos-detail {
+  position: absolute;
+  top: 50%;
+  right: clamp(24px, 5vw, 72px);
+  transform: translateY(-50%) translateX(36px);
+  width: min(420px, 42vw);
+  padding: 28px 30px;
+  background: linear-gradient(160deg, rgba(12, 16, 34, 0.82), rgba(6, 8, 20, 0.82));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid var(--c, #6ea8ff);
+  border-radius: 18px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 5;
+}
+.cosmos-detail.is-open {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+.cosmos-detail__close {
+  position: absolute; top: 14px; right: 16px;
+  width: 30px; height: 30px;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%; color: #cfd6f5; font-size: 18px; line-height: 1; cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.cosmos-detail__close:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--c); }
+.cosmos-detail__tag {
+  font-size: 11px; letter-spacing: 0.3em; color: var(--c, #6ea8ff); font-weight: 600;
+}
+.cosmos-detail__title {
+  font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; letter-spacing: 0.04em;
+  margin: 12px 0 14px;
+}
+.cosmos-detail__meta {
+  display: flex; gap: 16px; font-size: 12px; color: #9aa6d8;
+  letter-spacing: 0.08em; margin-bottom: 18px;
+}
+.cosmos-detail__meta .role { color: #c2c9ee; }
+.cosmos-detail__desc {
+  font-size: 14.5px; line-height: 1.8; color: #c8cfee;
+}
+.cosmos-detail__hint {
+  display: block; margin-top: 22px;
+  font-size: 10px; letter-spacing: 0.22em; color: #6f7bb0;
+}
+
+/* 포커스 중에는 챕터 캡션/힌트를 숨겨 몰입 유지 */
+.cosmos-stage__ui.is-focused .cosmos-captions,
+.cosmos-stage__ui.is-focused .cosmos-hint { opacity: 0 !important; pointer-events: none; }
+
+/* ── 반응형 ───────────────────────────────────────── */
+@media (max-width: 760px) {
+  .cosmos-captions {
+    left: 0; right: 0;
+    top: auto;
+    bottom: 84px;
+    transform: none;
+    padding: 0 22px;
+    width: auto;
+  }
+  .cosmos-cap { position: relative; width: 100%; }
+  .cosmos-cap:not(.is-active) { display: none; }
+  .cosmos-progress { height: 110px; }
+  .cosmos-hint { bottom: 20px; }
+
+  /* 상세 패널을 하단 시트로 */
+  .cosmos-detail {
+    top: auto; bottom: 0; right: 0; left: 0;
+    width: auto; max-width: none;
+    transform: translateY(40px);
+    border-radius: 20px 20px 0 0;
+    border-left: none; border-top: 2px solid var(--c, #6ea8ff);
+    padding: 24px 22px 30px;
+  }
+  .cosmos-detail.is-open { transform: translateY(0); }
+  .cosmos-plabel__cue { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-hint__arrow { animation: none; }
+  .cosmos-stage::before { animation: none; }
+}

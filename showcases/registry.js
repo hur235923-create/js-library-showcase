@@ -16,6 +16,7 @@
  * }
  */
 
+import cosmos from './cosmos/index.js';
 import gallery from './gallery/index.js';
 import perfume from './perfume/index.js';
 import threeHero from './three-hero/index.js';
@@ -24,6 +25,7 @@ import animejs from './anime-js/index.js';
 import exampleLibrary from './example-library/index.js';
 
 export const showcases = [
+  cosmos,
   gallery,
   perfume,
   threeHero,
